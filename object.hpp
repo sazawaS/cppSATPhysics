@@ -17,7 +17,7 @@ public:
         shape.setPosition(startPos);
         rect.pos = shape.getPosition();
         rect.size = shape.getSize();
-        mass = (size.x + size.y) /100;
+        mass = (size.x * size.y) / 2500;
     }
 
     void PhysicsUpdate(float deltaTime) {
@@ -30,4 +30,6 @@ public:
 
 
     }
+
+
 };
