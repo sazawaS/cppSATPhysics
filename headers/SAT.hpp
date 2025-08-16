@@ -10,6 +10,14 @@ struct Projection
     float max;
 };
 
+struct MTV
+{
+    bool collision;
+    sf::Vector2f axis;
+    sf::Vector2f collisionPoint;
+    float overlap;
+};
+
 //wtf this just gives me the corners of a rectangle (WORKS ON ROTATED RECTANGLES TOO)
 //        sf::Vector2f topLeft = shape.getTransform().transformPoint({0.f, 0.f});
 //        sf::Vector2f topRight = shape.getTransform().transformPoint({shape.getSize().x, 0.f});
@@ -78,7 +86,7 @@ std::vector<sf::Vector2f> getAxes(sf::RectangleShape& shape)
     std::vector<sf::Vector2f> axes;
     axes.push_back(axis1.normalized());
     axes.push_back(axis2.normalized());
-    return {axis1, axis2};
+    return axes;
 }
 
 
@@ -122,4 +130,114 @@ bool isOverlappingOnAxis(const std::vector<sf::Vector2f>& cornersA, const std::v
         return false;
     }
     return true;
+}
+
+bool isCollidingSAT( sf::RectangleShape& rect1, sf::RectangleShape& rect2)
+{
+    std::vector<sf::Vector2f> corners1 = getCorners(rect1);
+    std::vector<sf::Vector2f> corners2 = getCorners(rect2);
+    std::vector<sf::Vector2f> axes1 = getAxes(rect1);
+    std::vector<sf::Vector2f> axes2 = getAxes(rect2);
+
+
+    for (const auto& axis : axes1) {
+        if (!isOverlappingOnAxis(corners1, corners2, axis)) {
+            return false; // No collision on this axis, so no collision at all
+        }
+    }
+
+    for (const auto& axis : axes2) {
+        if (!isOverlappingOnAxis(corners1, corners2, axis)) {
+            return false; // No collision on this axis, so no collision at all
+        }
+    }
+
+    return true; 
+}
+
+//Function to get the overlap amount
+//You can look at the readme for an image to understand
+float getOverlap(const Projection& p1, const Projection& p2) {
+    return std::min(p1.max, p2.max) - std::max(p1.min, p2.min);
+}
+
+//Check if point is inside rotated rectangle
+//Project the point onto the rectangle's axes and check if it is within the rectangle's projections
+bool getPointInRect( sf::Vector2f& point, sf::RectangleShape& rect)
+{
+    std::vector<sf::Vector2f> corners = getCorners(rect);
+    std::vector<sf::Vector2f> axes = getAxes(rect);
+
+    for (const auto& axis : axes) {
+        Projection p1 = project(corners, axis);
+        Projection p2 = project({point}, axis); 
+
+        // If the point's projection is outside the rectangle's projection, it's not inside
+        if (p2.max < p1.min || p2.min > p1.max) {
+            return false;
+        }
+    }
+
+return true;
+
+}
+
+MTV computeMTVSAT(sf::RectangleShape& rect1, sf::RectangleShape& rect2)
+{
+    std::vector<sf::Vector2f> corners1 = getCorners(rect1);
+    std::vector<sf::Vector2f> corners2 = getCorners(rect2);
+    std::vector<sf::Vector2f> axes1 = getAxes(rect1);
+    std::vector<sf::Vector2f> axes2 = getAxes(rect2);
+
+    float smallestOverlap = std::numeric_limits<float>::max();
+    sf::Vector2f smallestAxis;
+    sf::Vector2f collisionPoint;
+    sf::RectangleShape theRectWithCollisionPoint;
+
+    for (const auto& axis : axes1) {
+        Projection p1 = project(corners1, axis);
+        Projection p2 = project(corners2, axis);
+
+        if  (p1.max < p2.min || p2.max < p1.min) {
+            return { false, {0,0}, {0,0}, 0.f };
+        } else {
+            float overlap = getOverlap(p1, p2);
+            if (overlap < smallestOverlap) {
+                smallestOverlap = overlap;
+                smallestAxis = axis;
+            }
+        }
+    }
+
+    for (const auto& axis : axes2) {
+        Projection p1 = project(corners1, axis);
+        Projection p2 = project(corners2, axis);
+
+        if  (p1.max < p2.min || p2.max < p1.min) {
+            return { false, {0,0}, {0,0}, 0.f };
+        } else {
+            float overlap = getOverlap(p1, p2);
+            if (overlap < smallestOverlap) {
+                smallestOverlap = overlap;
+                smallestAxis = -axis;
+            }
+        }
+    }
+
+    for (auto& corner : corners1) {
+        if (getPointInRect(corner, rect2)) {
+            collisionPoint = corner;
+            theRectWithCollisionPoint = rect1;
+            break;
+        }
+    }
+        for (auto& corner : corners2) {
+        if (getPointInRect(corner, rect1)) {
+            collisionPoint = corner;
+            theRectWithCollisionPoint = rect2;
+            break;
+        }
+    }
+
+    return { true, smallestAxis, collisionPoint, smallestOverlap };
 }
