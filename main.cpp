@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include <optional>
+#include "headers/SAT.hpp"
 #include "headers/object.hpp"
 #include "headers/player.hpp"
 #include "headers/movingobj.hpp"
@@ -114,8 +116,58 @@ void resolveCollisionWithObjects(MovingObj& a, Object& b) {
     }
 }
 
-
 int main()
+{
+    sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
+    window.setFramerateLimit(120);
+
+    while (window.isOpen())
+    {
+
+        RectangleShape rect1(sf::Vector2f(100, 200));
+        RectangleShape rect2(sf::Vector2f(150, 210));
+        rect1.setFillColor(sf::Color::Green);
+        rect2.setFillColor(sf::Color::Red);
+        rect1.setOrigin(rect1.getSize() / 2.f);
+        rect2.setOrigin(rect2.getSize() / 2.f);
+        rect1.setPosition(sf::Vector2f(300, 200));  
+        rect2.setPosition(sf::Vector2f(400, 500));
+        rect1.setRotation(sf::degrees(45));
+        rect2.setRotation(sf::degrees(75));
+
+        while (const std::optional event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+                window.close();
+        }
+
+        std::vector<sf::Vector2f> corners1 = getCorners(rect1);
+        std::vector<sf::Vector2f> corners2 = getCorners(rect2);
+        std::vector<sf::Vector2f> axes1 = getAxes(rect1);
+        std::vector<sf::Vector2f> axes2 = getAxes(rect2);
+
+        bool isColliding = false;
+
+        for (const auto& axis : axes1) {
+            if (!isOverlappingOnAxis(corners1, corners2, axis)) {
+                isColliding = false;
+                break;
+            } else {
+                isColliding = true;
+            }
+        }
+
+
+        std::cout << isColliding << std::endl;
+
+        window.clear(sf::Color::Black);
+        window.draw(rect1);
+        window.draw(rect2);
+        window.display();
+    }
+}
+
+int amain()
 {
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
     window.setFramerateLimit(120);
