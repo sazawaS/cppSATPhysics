@@ -113,6 +113,7 @@ int main()
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
     window.setFramerateLimit(120);
 
+
     std::vector<Object> objects;
     std::vector<MovingObj> movingObjs;
     Player player = Player(sf::Vector2f(50,50), sf::Vector2f(1280/2, 720/2));
@@ -155,7 +156,7 @@ int main()
 
 
         
-        window.clear();
+        window.clear(sf::Color(60, 179, 113));
         for (auto& obj : objects) {
             window.draw(obj.shape);
         }
@@ -163,6 +164,7 @@ int main()
             window.draw(obj.shape);
         }
         window.draw(player.shape);
+        window.draw(player.arrowShape);
 
         window.display();
     }
