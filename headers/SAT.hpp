@@ -189,12 +189,16 @@ MTV computeMTVSAT(sf::RectangleShape& rect1, sf::RectangleShape& rect2)
     std::vector<sf::Vector2f> axes1 = getAxes(rect1);
     std::vector<sf::Vector2f> axes2 = getAxes(rect2);
 
+    std::vector<sf::Vector2f> axes;
+    axes.insert(axes.end(), axes1.begin(), axes1.end());
+    axes.insert(axes.end(), axes2.begin(), axes2.end());
+
     float smallestOverlap = std::numeric_limits<float>::max();
     sf::Vector2f smallestAxis;
     sf::Vector2f collisionPoint;
     sf::RectangleShape theRectWithCollisionPoint;
 
-    for (const auto& axis : axes1) {
+    for (const auto& axis : axes) {
         Projection p1 = project(corners1, axis);
         Projection p2 = project(corners2, axis);
 
@@ -205,21 +209,10 @@ MTV computeMTVSAT(sf::RectangleShape& rect1, sf::RectangleShape& rect2)
             if (overlap < smallestOverlap) {
                 smallestOverlap = overlap;
                 smallestAxis = axis;
-            }
-        }
-    }
 
-    for (const auto& axis : axes2) {
-        Projection p1 = project(corners1, axis);
-        Projection p2 = project(corners2, axis);
-
-        if  (p1.max < p2.min || p2.max < p1.min) {
-            return { false, {0,0}, {0,0}, 0.f };
-        } else {
-            float overlap = getOverlap(p1, p2);
-            if (overlap < smallestOverlap) {
-                smallestOverlap = overlap;
-                smallestAxis = -axis;
+                sf::Vector2f d = rect2.getPosition() - rect1.getPosition();
+                if (d.x * smallestAxis.x + d.y * smallestAxis.y < 0) //The axis points in the dir of rect1->rect2
+                    smallestAxis = -smallestAxis;
             }
         }
     }
@@ -231,7 +224,7 @@ MTV computeMTVSAT(sf::RectangleShape& rect1, sf::RectangleShape& rect2)
             break;
         }
     }
-        for (auto& corner : corners2) {
+    for (auto& corner : corners2) {
         if (getPointInRect(corner, rect1)) {
             collisionPoint = corner;
             theRectWithCollisionPoint = rect2;

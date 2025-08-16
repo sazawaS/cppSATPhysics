@@ -33,6 +33,7 @@ public:
         shape.setSize(size);
         shape.setFillColor(color);
         shape.setPosition(startPos);
+        shape.setOrigin({size.x / 2, size.y / 2}); // Set origin to center
         rect.pos = shape.getPosition();
         rect.size = shape.getSize();
         mass = (size.x * size.y) / 2500;
@@ -53,9 +54,11 @@ public:
         velocity += force;
         
         sf::Vector2f r = (pointOfApplication - this->getCenter());
-        float torque = r.x * force.y - r.y * force.x; 
+        float torque = r.x * (force.y*2) - r.y * (force.x*2); 
         angularVelocity += torque / inertia; 
     }
 
-
+    sf::Vector2f getCenterOfMass() const {
+        return shape.getPosition();
+    }
 };

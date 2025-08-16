@@ -10,113 +10,64 @@
 
     
 
-//AABB Collisions
+// Collisions
 void resolveCollisionWithPlayer(Player& player, Object& obj)
 {
-    if (rectInRect(player.rect, obj.rect))
+    MTV collisionData = computeMTVSAT(player.shape, obj.shape);
+    if (collisionData.collision)
     {
-        Vector2f resolve = getResolve(player.rect,obj.rect);
-        //Formula for velocity after collision:
-        //ObjA Velocity = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2)
-        //ObjB Velocity = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2)
-
-        player.shape.move(resolve);
+        sf::Vector2f resolve = collisionData.axis * (collisionData.overlap);
         float m1 = player.mass;
-        float m2 = m1*100;
-        if (resolve.y == 0) 
-        {
-            float v1 = player.velocity.x;
-            float v2 = obj.velocity.x;
-            player.velocity.x = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-        } else { 
-            float v1 = player.velocity.y;
-            float v2 = obj.velocity.y;
-            player.velocity.y = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-        }
+        player.shape.move((-resolve));
+        player.applyForce(-resolve, collisionData.collisionPoint);
     }
 }
 void resolveCollisionWithPlayer(Player& player, MovingObj& obj)
 {
-    if (rectInRect(player.rect, obj.rect))
-    {
-        sf::Vector2f resolve = getResolve(player.rect,obj.rect);
-        sf::Vector2f collisionPoint = getCollisionPoint(player.rect,obj.rect);
-        std::cout << "Collision Point: " << collisionPoint.x << ", " << collisionPoint.y << std::endl;
-        //Formula for velocity after collision:
-        //ObjA Velocity = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2)
-        //ObjB Velocity = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2)
+    MTV collisionData = computeMTVSAT(player.shape, obj.shape);
+    if (!collisionData.collision) return;
 
-        player.shape.move(resolve);
-        float m1 = player.mass;
-        float m2 = obj.mass;
-        sf::Vector2f appliedVelocity1;
-        sf::Vector2f appliedVelocity2;
-        if (resolve.y == 0) 
-        {
-            float v1 = player.velocity.x;
-            float v2 = obj.velocity.x;
-            appliedVelocity1 = sf::Vector2f(((m1-m2)*v1 + (2*m2*v2))/(m1+m2), 0);
-            appliedVelocity2 = sf::Vector2f(((m2-m1)*v2 + (2*m1*v1))/(m1+m2), 0);
-        } else { 
-            float v1 = player.velocity.y;
-            float v2 = obj.velocity.y;
-            appliedVelocity1 = sf::Vector2f(0,((m1-m2)*v1 + (2*m2*v2))/(m1+m2));
-            appliedVelocity2 = sf::Vector2f(0,((m2-m1)*v2 + (2*m1*v1))/(m1+m2));    
-        }
-        player.applyForce(appliedVelocity1, collisionPoint);
-        obj.applyForce(appliedVelocity2, collisionPoint);
-    }
+    sf::Vector2f resolve = collisionData.axis * collisionData.overlap;
+
+    float m1 = player.mass;
+    float m2 = obj.mass;
+
+    player.shape.move((-resolve) / 2.f);
+    obj.shape.move((resolve) / 2.f);
+
+    player.applyForce(-resolve, collisionData.collisionPoint);
+    obj.applyForce(resolve, collisionData.collisionPoint);
 }
-void resolveCollisionWithObjects(MovingObj& a, MovingObj& b) {
-    if (rectInRect(a.rect, b.rect))
-    {
-        Vector2f resolve = getResolve(a.rect,b.rect);
-        //Formula for velocity after collision:
-        //ObjA Velocity = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2)
-        //ObjB Velocity = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2)
 
-        a.shape.move(resolve);
+void resolveCollisionWithObjects(MovingObj& a, MovingObj& b) {
+    MTV collisionData = computeMTVSAT(a.shape, b.shape);
+    if (collisionData.collision)
+    {
+        sf::Vector2f resolve = collisionData.axis * (collisionData.overlap);
+        
         float m1 = a.mass;
         float m2 = b.mass;
-        if (resolve.y == 0) 
-        {
-            float v1 = a.velocity.x;
-            float v2 = b.velocity.x;
-            a.velocity.x = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-            b.velocity.x = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2);
-        } else { 
-            float v1 = a.velocity.y;
-            float v2 = b.velocity.y;
-            a.velocity.y = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-            b.velocity.y = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2);    
-        }
+
+        a.shape.move((-resolve)/2.f);
+        b.shape.move((resolve)/2.f);
+        
+        a.applyForce(-resolve, collisionData.collisionPoint);
+        b.applyForce(resolve, collisionData.collisionPoint);
     }
 }
 void resolveCollisionWithObjects(MovingObj& a, Object& b) {
-    if (rectInRect(a.rect, b.rect))
+    MTV collisionData = computeMTVSAT(a.shape, b.shape);
+    if (collisionData.collision)
     {
-        Vector2f resolve = getResolve(a.rect,b.rect);
-        //Formula for velocity after collision:
-        //ObjA Velocity = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2)
-        //ObjB Velocity = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2)
-
-        a.shape.move(resolve);
+        sf::Vector2f resolve = collisionData.axis * (collisionData.overlap);
         float m1 = a.mass;
-        float m2 = m1*100;
-        if (resolve.y == 0) 
-        {
-            float v1 = a.velocity.x;
-            float v2 = b.velocity.x;
-            a.velocity.x = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-        } else { 
-            float v1 = a.velocity.y;
-            float v2 = b.velocity.y;
-            a.velocity.y = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-        }
+        float m2 = b.mass;
+        a.shape.move((-resolve));
+        a.applyForce(-resolve, collisionData.collisionPoint);
     }
 }
 
-int amain()
+int main()
 {
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
     window.setFramerateLimit(120);
@@ -124,13 +75,16 @@ int amain()
 
     std::vector<Object> objects;
     std::vector<MovingObj> movingObjs;
-    Player player = Player(sf::Vector2f(100,20), sf::Vector2f(1280/2, 720/2));
-    movingObjs.emplace_back(sf::Vector2f(50,50), sf::Vector2f(90, 90), sf::Color::Blue);
-    movingObjs.emplace_back(sf::Vector2f(15,15), sf::Vector2f(120, 120), sf::Color::Blue);
-    objects.emplace_back(sf::Vector2f(1280,10), sf::Vector2f(0, -10), sf::Color::Red);
-    objects.emplace_back(sf::Vector2f(1280,10), sf::Vector2f(0, 720), sf::Color::Red);
-    objects.emplace_back(sf::Vector2f(10,720), sf::Vector2f(-10, 0), sf::Color::Red);
-    objects.emplace_back(sf::Vector2f(10,720), sf::Vector2f(1280, 0), sf::Color::Red);
+    Player player = Player(sf::Vector2f(200,20), sf::Vector2f(1280/2, 720/2));
+    player.angle = 10.0f;
+    movingObjs.emplace_back(sf::Vector2f(150,30), sf::Vector2f(200, 400), sf::Color::Blue);
+    movingObjs.emplace_back(sf::Vector2f(200,50), sf::Vector2f(800, 400), sf::Color::Blue);
+    movingObjs.emplace_back(sf::Vector2f(250,10), sf::Vector2f(640, 600), sf::Color::Blue);
+    movingObjs.emplace_back(sf::Vector2f(100,5), sf::Vector2f(640, 100), sf::Color::Blue);
+    objects.emplace_back(sf::Vector2f(1280,10), sf::Vector2f(1280/2, -5), sf::Color::Red);
+    objects.emplace_back(sf::Vector2f(1280,10), sf::Vector2f(1280/2, 720+5), sf::Color::Red);
+    objects.emplace_back(sf::Vector2f(10,720), sf::Vector2f(-5, 720/2), sf::Color::Red);
+    objects.emplace_back(sf::Vector2f(10,720), sf::Vector2f(1280+5, 720/2), sf::Color::Red);
 
     sf::Clock clock;
 
