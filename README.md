@@ -22,7 +22,7 @@ See function getAxes()
 Now, its projections. Goto function project()
 struct projection is just min and max projections of the rectangle onto the axes we're checking in. 
 
-![Test Image 2](helpImages/axesHelp.png)
+![Test Image 2](helpImages/overlapHelp.png)
 
 isCollidingSAT() applied everything so far
 
