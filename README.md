@@ -27,3 +27,6 @@ struct projection is just min and max projections of the rectangle onto the axes
 isCollidingSAT() applied everything so far
 
 now, MTV (Minimum Translation Vector) it is pretty explainatory at computeMTVSAT()
+
+# Final Result Something like this
+https://streamable.com/embjuu
