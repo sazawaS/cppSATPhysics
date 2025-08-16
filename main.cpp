@@ -1,10 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
-#include "object.hpp"
-#include "player.hpp"
-#include "movingobj.hpp"
-#include "AABB.hpp"
+#include "headers/object.hpp"
+#include "headers/player.hpp"
+#include "headers/movingobj.hpp"
+#include "headers/AABB.hpp"
 
     
 
@@ -37,7 +37,9 @@ void resolveCollisionWithPlayer(Player& player, MovingObj& obj)
 {
     if (rectInRect(player.rect, obj.rect))
     {
-        Vector2f resolve = getResolve(player.rect,obj.rect);
+        sf::Vector2f resolve = getResolve(player.rect,obj.rect);
+        sf::Vector2f collisionPoint = getCollisionPoint(player.rect,obj.rect);
+        std::cout << "Collision Point: " << collisionPoint.x << ", " << collisionPoint.y << std::endl;
         //Formula for velocity after collision:
         //ObjA Velocity = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2)
         //ObjB Velocity = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2)
@@ -45,18 +47,22 @@ void resolveCollisionWithPlayer(Player& player, MovingObj& obj)
         player.shape.move(resolve);
         float m1 = player.mass;
         float m2 = obj.mass;
+        sf::Vector2f appliedVelocity1;
+        sf::Vector2f appliedVelocity2;
         if (resolve.y == 0) 
         {
             float v1 = player.velocity.x;
             float v2 = obj.velocity.x;
-            player.velocity.x = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-            obj.velocity.x = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2);
+            appliedVelocity1 = sf::Vector2f(((m1-m2)*v1 + (2*m2*v2))/(m1+m2), 0);
+            appliedVelocity2 = sf::Vector2f(((m2-m1)*v2 + (2*m1*v1))/(m1+m2), 0);
         } else { 
             float v1 = player.velocity.y;
             float v2 = obj.velocity.y;
-            player.velocity.y = ((m1-m2)*v1 + (2*m2*v2))/(m1+m2);
-            obj.velocity.y = ((m2-m1)*v2 + (2*m1*v1))/(m1+m2);    
+            appliedVelocity1 = sf::Vector2f(0,((m1-m2)*v1 + (2*m2*v2))/(m1+m2));
+            appliedVelocity2 = sf::Vector2f(0,((m2-m1)*v2 + (2*m1*v1))/(m1+m2));    
         }
+        player.applyForce(appliedVelocity1, collisionPoint);
+        obj.applyForce(appliedVelocity2, collisionPoint);
     }
 }
 void resolveCollisionWithObjects(MovingObj& a, MovingObj& b) {
@@ -108,6 +114,7 @@ void resolveCollisionWithObjects(MovingObj& a, Object& b) {
     }
 }
 
+
 int main()
 {
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
@@ -116,7 +123,7 @@ int main()
 
     std::vector<Object> objects;
     std::vector<MovingObj> movingObjs;
-    Player player = Player(sf::Vector2f(50,50), sf::Vector2f(1280/2, 720/2));
+    Player player = Player(sf::Vector2f(100,20), sf::Vector2f(1280/2, 720/2));
     movingObjs.emplace_back(sf::Vector2f(50,50), sf::Vector2f(90, 90), sf::Color::Blue);
     movingObjs.emplace_back(sf::Vector2f(15,15), sf::Vector2f(120, 120), sf::Color::Blue);
     objects.emplace_back(sf::Vector2f(1280,10), sf::Vector2f(0, -10), sf::Color::Red);
@@ -135,8 +142,9 @@ int main()
         }
 
         //Update
+        sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
         float deltaTime = clock.restart().asSeconds();
-        player.PhysicsUpdate(deltaTime);
+        player.PhysicsUpdate(deltaTime, mousePos);
         for (MovingObj& obj : movingObjs) {
             obj.PhysicsUpdate(deltaTime);
             resolveCollisionWithPlayer(player, obj);
