@@ -14,6 +14,15 @@ After i finally finished the getCorners function, I tried doing the projections.
 To fully understand Vector Projections I had to watch this
 https://www.youtube.com/watch?v=fqPiDICPkj8
 
-After that, I learnt to get the normal axes (It was ez for rectangles)
+After that, I learnt to get the normal axes (It was ez for rectangles) 
+See function getAxes() 
 
 ![Test Image 6](helpImages/axesHelp.png)
+(IDFK HOW TO ADD IMAGES)
+
+Now, its projections. Goto function project()
+struct projection is just min and max projections of the rectangle onto the axes we're checking in. 
+
+![Test Image 2](helpImages/axesHelp.png)
+
+
