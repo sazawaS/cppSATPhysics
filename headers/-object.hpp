@@ -39,7 +39,7 @@ public:
         mass = (size.x * size.y) / 2500;
         width = size.x;
         height = size.y;
-        inertia = (mass * (width*width + height*height)) / 12.f;
+        inertia = (1 * (width*width + height*height)) / 12.f;
     }
 
     void PhysicsUpdate(float deltaTime) {
@@ -53,6 +53,7 @@ public:
     void applyForce(sf::Vector2f force, sf::Vector2f pointOfApplication) {
         velocity += force;
         
+        //r is vector from center of mass to point of collision
         sf::Vector2f r = (pointOfApplication - this->getCenter());
         float torque = r.x * (force.y*2) - r.y * (force.x*2); 
         angularVelocity += torque / inertia; 

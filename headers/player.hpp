@@ -1,32 +1,36 @@
 #pragma once
-#include "object.hpp"
+#include "rigidbody.hpp"
 #include "input.hpp"
 #include <cmath>
 #include <SFML/Graphics.hpp>
 
-class Player : public Object {
+class Player : public RigidBody {
 public:
     Input Input;
     float speed = 50.f;
-    float frictionPerSecond = 0.4f;
-    float angularDamping = 1000.0f;
 
     sf::Vector2f initialMousePosition;
-
     bool showArrow = false;
     sf::RectangleShape arrowShape;
+    sf::RectangleShape arrowShape2;
 
-    Player(sf::Vector2f size, sf::Vector2f startPos, sf::Color color = sf::Color::White) 
-        : Object(size, startPos, color) {
+    Player(sf::Vector2f startPos, sf::Vector2f size, sf::Color color = sf::Color::White, float density=1.f) 
+        : RigidBody(startPos, size, color, density) {
             arrowShape.setSize(sf::Vector2f(0,4.0f));
             arrowShape.setFillColor(sf::Color::Blue);
             arrowShape.setOrigin(sf::Vector2f(0.f, 2.f));
             arrowShape.setPosition(sf::Vector2f(sf::Mouse::getPosition().x, sf::Mouse::getPosition().y));
+            
+            sf::Vector2f corner = getCorners(shape)[0];
+            arrowShape2.setPosition(corner);
+            arrowShape2.setSize(sf::Vector2f(0,4.0f));
+            arrowShape2.setFillColor(sf::Color::Red);
+            arrowShape2.setOrigin(sf::Vector2f(0.f, 2.f));
         }
 
-    void PhysicsUpdate(float deltaTime, sf::Vector2f mousePos) {
+    void mouseUpdate(sf::Vector2f mousePos) {
+
         Input.updateInput();
-        previousPosition = shape.getPosition();
 
         if (Input.isKeyJustPressed("LMB")) {
             initialMousePosition = mousePos;
@@ -35,7 +39,7 @@ public:
         if (Input.isKeyJustReleased("LMB")) {
             sf::Vector2f releasedMousePosition = mousePos;
             sf::Vector2f directionVector = initialMousePosition - releasedMousePosition;
-            applyForce(sf::Vector2f(directionVector.x, directionVector.y), sf::Vector2f(initialMousePosition.x, initialMousePosition.y));
+            applyImpulseAtPoint(sf::Vector2f(directionVector.x, directionVector.y), sf::Vector2f(initialMousePosition.x, initialMousePosition.y));
             showArrow = false;
         }
         
@@ -53,16 +57,5 @@ public:
             arrowShape.setScale(sf::Vector2f(0,0));
         }
         
-        //Gravity
-        //velocity.y += 500.f * deltaTime * mass;
-        shape.move(velocity * deltaTime);
-        velocity *= std::pow(frictionPerSecond, deltaTime);
-
-        angle += angularVelocity * deltaTime;
-        shape.setRotation(sf::degrees(angle * 180.f / 3.14159f));
-        angularVelocity *= std::pow(0.5f, deltaTime * (angularDamping / inertia));
-
-        rect.pos = shape.getPosition();
-        rect.size = shape.getSize();
     }
 };

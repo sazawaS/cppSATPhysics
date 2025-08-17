@@ -22,7 +22,7 @@ public:
 
         angle += angularVelocity * deltaTime;
         shape.setRotation(sf::radians(angle));
-        angularVelocity *= std::pow(0.5f, deltaTime * (angularDamping / inertia));
+        angularVelocity *= std::pow(0.5f, deltaTime * (angularDamping /inertia));
 
         rect.pos = shape.getPosition();
         rect.size = shape.getSize();
