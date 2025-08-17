@@ -18,11 +18,15 @@ After that, I learnt to get the normal axes (It was ez for rectangles)
 See function getAxes() 
 
 ![Test Image 6](helpImages/axesHelp.png)
-(IDFK HOW TO ADD IMAGES)
 
 Now, its projections. Goto function project()
 struct projection is just min and max projections of the rectangle onto the axes we're checking in. 
 
-![Test Image 2](helpImages/axesHelp.png)
+![Test Image 2](helpImages/overlapHelp.png)
 
+isCollidingSAT() applied everything so far
 
+now, MTV (Minimum Translation Vector) it is pretty explainatory at computeMTVSAT()
+
+# Final Result Something like this
+https://streamable.com/embjuu
