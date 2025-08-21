@@ -30,3 +30,8 @@ now, MTV (Minimum Translation Vector) it is pretty explainatory at computeMTVSAT
 
 # Final Result Something like this
 https://streamable.com/embjuu
+
+# Understanding Some basic physics (Torque, Impulses)
+
+This video is FUCKING GOATED!
+https://www.youtube.com/watch?v=3lBYVSplAuo
