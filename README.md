@@ -38,3 +38,5 @@ https://www.youtube.com/watch?v=3lBYVSplAuo
 
 And to get more advanced u can read these articles
 https://code.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715
+
+# Todo: Polygonal shapes, circles, concave shapes collisions and physics. 
