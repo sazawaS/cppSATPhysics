@@ -1,4 +1,4 @@
-# Every learning resource used for learning SAT
+# Every learning resource used for learning this 
 (Incase I forget and need to re-learn this)
 
 First, this video to explain the SAT bascis 
@@ -35,3 +35,6 @@ https://streamable.com/embjuu
 
 This video is FUCKING GOATED!
 https://www.youtube.com/watch?v=3lBYVSplAuo
+
+And to get more advanced u can read these articles
+https://code.tutsplus.com/series/how-to-create-a-custom-physics-engine--gamedev-12715
