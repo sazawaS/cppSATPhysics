@@ -1,5 +1,4 @@
 #pragma once
-#include "object.hpp"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cmath>
@@ -18,8 +17,8 @@ public:
 
     float mass = 1.f;
     float inertia = 1.f;
-    float linearDamping = 0.98f; //aka friction
-    float angularDamping = 0.98f;         
+    float linearDamping = 0.4; //aka friction
+    float angularDamping = 0.2;         
     
     bool isStatic = false;
 
@@ -39,12 +38,18 @@ public:
         shape.setPosition(pos);
 
         shape.setRotation(sf::degrees(angle));
-        mass = (size.x * size.y) * density;
-        inertia = (mass/2500) * ((size.x*size.x + size.y*size.y)) / 2500.f; //Ion know how to calculate inertia, so this is a guess
+        mass = ((size.x * size.y) * density)/8000;
 
         if (makeStatic) {
             mass = INFINITY;
             inertia = INFINITY;
+        }
+
+        //Idk how to calculate inertia, so I just use this
+        if (size.x > size.y) {
+            inertia = (mass * size.x) / 2.f;
+        } else {
+            inertia = (mass * size.y) / 2.f;
         }
     }
 
@@ -52,19 +57,25 @@ public:
 
         position += velocity * deltaTime;
         angle += angularVel * deltaTime;
-        angularVel *= angularDamping;
-        velocity *= linearDamping;
+        velocity *= std::pow(linearDamping, deltaTime); //0.4 linear damping means keep 40% of velocity every
+        angularVel *= std::pow(angularDamping, deltaTime);
+
+        //Clamp velocity and angularvelocity
+        if (std::abs(velocity.x) < 2.f) velocity.x = 0.f;
+        if (std::abs(velocity.y) < 2.f) velocity.y = 0.f;
+        if (std::abs(angularVel) < 2.5f) angularVel = 0.f;
+
 
         shape.setPosition(position);
         shape.setRotation(sf::degrees(angle));
     }
 
     void applyImpulse(sf::Vector2f impulse) {
-        velocity += impulse / (mass/15000); 
+        velocity += impulse / (mass); 
     }
 
     void applyImpulseAtPoint(sf::Vector2f impulse, sf::Vector2f point) {
-        velocity += impulse / (mass/15000); 
+        velocity += impulse / (mass); 
 
         // Torque = r x F
         sf::Vector2f r = point - (getCenterOfMass() + position);
@@ -72,8 +83,14 @@ public:
 
         // Torque = Inertia * angular acceleration
         // Aka angular acceleration = Torque / Inertia
-        float angularAcceleration = torque / inertia;
-        //update angular velocity accounting for mass
-        angularVel += angularAcceleration / (mass/5000);
+        float angularAcceleration = torque / (inertia);
+        //update angular velocity accounting for mass 
+        angularVel += angularAcceleration / (mass);
     }
+
+    void move(sf::Vector2f offset) {
+        position += offset;
+        shape.setPosition(position);
+    }
+
 };

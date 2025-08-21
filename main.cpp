@@ -3,11 +3,8 @@
 #include <vector>
 #include <optional>
 #include "headers/SAT.hpp"
-#include "headers/player.hpp"
 #include "headers/rigidbody.hpp"
-#include "headers/AABB.hpp"
-
-    
+#include "headers/player.hpp"
 
 // Collisions
 void resolveCollision(RigidBody& a, RigidBody& b) {
@@ -16,41 +13,46 @@ void resolveCollision(RigidBody& a, RigidBody& b) {
     if (collisionData.collision)
     {
         sf::Vector2f resolve = collisionData.axis * (collisionData.overlap);
-        float m1 = a.mass;
-        float m2 = b.mass;
         if (a.isStatic) {
-            b.shape.move(resolve);
+            b.move(resolve);
         } else if (b.isStatic) {
-            a.shape.move(-resolve);
+            a.move(-resolve);
         } else {
-            a.shape.move(-resolve / 2.f);
-            b.shape.move(resolve / 2.f);
+            a.move(-resolve/2.f);
+            b.move(resolve/2.f);
         }
-        a.applyImpulseAtPoint(-resolve, collisionData.collisionPoint);
-        b.applyImpulseAtPoint(resolve, collisionData.collisionPoint);
+
+
+        //Copied off the tutorial
+        sf::Vector2f relativeVelocity = b.velocity - a.velocity;
+        float velocityAlongNormal = relativeVelocity.x * collisionData.axis.x + relativeVelocity.y * collisionData.axis.y;
+
+        if (velocityAlongNormal > 0) {
+            return; 
+        }
+
+        float e = 0.9f;
+
+        float j = -(1 + e) * velocityAlongNormal;
+        j /= (1 / a.mass + 1 / b.mass);
+
+        sf::Vector2f impulse = collisionData.axis * j;
+
+        a.applyImpulseAtPoint(-(1/a.mass * impulse), collisionData.collisionPoint);
+        b.applyImpulseAtPoint((1/b.mass * impulse), collisionData.collisionPoint);
     }
 }   
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode({1280, 720}), "Physics In CPP");
-    window.setFramerateLimit(120);
+    window.setFramerateLimit(75);
 
 
     std::vector<RigidBody> rigidBodies;
     Player player = Player(sf::Vector2f(400, 200), sf::Vector2f(200,40));    
-    RigidBody box1(sf::Vector2f(500, 500), sf::Vector2f(200, 40), sf::Color::Red, 1.f, true);
+    RigidBody box1(sf::Vector2f(500, 500), sf::Vector2f(200, 40), sf::Color::Red, 1.f, false);
     rigidBodies.push_back(box1);
-
-    //Make 4 walls around the world screen 1280 720
-    RigidBody topWall(sf::Vector2f(640, -10), sf::Vector2f(1280, 20), sf::Color::White, 1.f, true);
-    RigidBody bottomWall(sf::Vector2f(640, 720+10), sf::Vector2f(1280, 20), sf::Color::White, 1.f, true);
-    RigidBody leftWall(sf::Vector2f(-10, 360), sf::Vector2f(20, 720), sf::Color::White, 1.f, true);
-    RigidBody rightWall(sf::Vector2f(1280+10, 360), sf::Vector2f(20, 720), sf::Color::White, 1.f, true);
-    rigidBodies.push_back(topWall);
-    rigidBodies.push_back(bottomWall);
-    rigidBodies.push_back(leftWall);
-    rigidBodies.push_back(rightWall);
 
     sf::Clock clock;
 
@@ -65,13 +67,29 @@ int main()
         //Update
         sf::Vector2f mousePos = sf::Vector2f(sf::Mouse::getPosition(window));
         float deltaTime = clock.restart().asSeconds();
-        player.PhysicsUpdate(deltaTime);
-        player.mouseUpdate(mousePos);
+        float timeStep = 1.f / 300.f; // 300 FPS physics update
+        float accumulator = deltaTime;
 
-        for (RigidBody& obj : rigidBodies) {
-            obj.PhysicsUpdate(deltaTime);
-            resolveCollision(player, obj);
+        while (accumulator > 0.f)
+        {
+            float step = std::min(accumulator, timeStep);
+
+            player.PhysicsUpdate(step);
+            player.mouseUpdate(mousePos);
+            for (RigidBody& obj : rigidBodies) {
+                obj.PhysicsUpdate(step);
+                resolveCollision(player, obj);
+                for (RigidBody& other : rigidBodies) {
+                    if (&obj != &other && other.isStatic == false) {
+                        resolveCollision(obj, other);
+                    }
+                }
+            }
+            
+            accumulator -= step;
         }
+
+
 
 
         

@@ -2,9 +2,28 @@
 #include "rigidbody.hpp"
 #include "input.hpp"
 #include <cmath>
+#include <vector>
 #include <SFML/Graphics.hpp>
 
+
+
 class Player : public RigidBody {
+private:
+    sf::Vector2f getClosestPointOnBody(sf::Vector2f point)
+    {
+        std::vector<sf::Vector2f> corners = getCorners(shape);
+        sf::Vector2f closestPoint = corners[0];
+        float minDistance = std::numeric_limits<float>::max();
+        for (const auto& corner : corners) {
+            float distance = std::sqrt(std::pow(corner.x - point.x, 2) + std::pow(corner.y - point.y, 2));
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPoint = corner;
+            }
+        }
+
+        return closestPoint;
+    }
 public:
     Input Input;
     float speed = 50.f;
@@ -29,11 +48,13 @@ public:
         }
 
     void mouseUpdate(sf::Vector2f mousePos) {
-
         Input.updateInput();
 
         if (Input.isKeyJustPressed("LMB")) {
             initialMousePosition = mousePos;
+            if (!getPointInRect(initialMousePosition, shape)) {
+                //initialMousePosition = getClosestPointOnBody(initialMousePosition);
+            }
             showArrow = true;
         }
         if (Input.isKeyJustReleased("LMB")) {
